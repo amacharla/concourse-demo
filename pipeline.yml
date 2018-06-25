@@ -1,0 +1,33 @@
+resources:
+- name: concourse-repo
+  type: git
+  source:
+    uri: https://github.com/amacharla/concourse-demo.git
+
+- name: concourse-gcc-image
+  type: docker-image
+  source:
+    email: noop2016@gmail.com 
+    username: amacharla
+    password: mvan00p 
+    repository: amacharla/concourse-gcc
+
+jobs:
+- name: publish
+  public: true
+  plan:
+  - get: concourse-repo
+    trigger: true
+  - put: concourse-gcc-image 
+    params:
+      build: docker
+  - task: get-version
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amacharla/concourse-gcc-image
+      run:
+        path: gcc
+        args: [--version]
