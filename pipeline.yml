@@ -20,7 +20,7 @@ jobs:
     trigger: true
   - put: concourse-gcc-image 
     params:
-      build: docker
+      build: concourse-repo/docker
   - task: get-version
     config:
       platform: linux
