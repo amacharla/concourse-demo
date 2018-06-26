@@ -1,7 +1,14 @@
 #include <stdio.h>
-int main(void)
+#include <stdlib.h>
+
+/**
+ * main: Gets enviroment var NAME and prints
+ */
+
+int main()
 {
-    printf("Hello, World\n");
+    char* NAME = getenv("NAME");
+    printf("Hello %s\n",(NAME != NULL) ? NAME : "World!");
     return (0);
 }
 

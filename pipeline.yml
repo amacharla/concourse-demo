@@ -7,9 +7,9 @@ resources:
 - name: concourse-gcc-image
   type: docker-image
   source:
-    email: noop2016@gmail.com 
-    username: amacharla
-    password: mvan00p 
+    email: ((docker-email)) 
+    username: ((docker-username))
+    password: ((docker-password)) 
     repository: amacharla/concourse-gcc
 
 jobs:
@@ -21,13 +21,13 @@ jobs:
   - put: concourse-gcc-image 
     params:
       build: concourse-repo/docker
-  - task: get-version
+  - task: run_program
     config:
       platform: linux
       image_resource:
         type: docker-image
         source:
-          repository: amacharla/concourse-gcc-image
+          repository: amacharla/concourse-gcc
       run:
         path: gcc
-        args: [--version]
+        args: [main.c]
