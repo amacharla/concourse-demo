@@ -1,0 +1,79 @@
+resource_types:
+- name: kubernetes
+  type: docker-image
+  source:
+    repository: zlabjp/kubernetes-resource
+
+resources:
+- name: concourse-repo
+  type: git
+  source:
+    uri: https://github.com/amacharla/concourse-demo.git
+
+- name: concourse-gcc-image
+  type: docker-image
+  source:
+    email: ((docker-email)) 
+    username: ((docker-username))
+    password: ((docker-password)) 
+    repository: amacharla/concourse-gcc
+
+- name: eks
+  type: kubernetes
+  source:
+    kubeconfig: |
+apiVersion: v1
+clusters:
+- cluster:
+    server: <endpoint-url>
+    certificate-authority-data: <base64-encoded-ca-cert>
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: aws
+  name: aws
+current-context: aws
+kind: Config
+preferences: {}
+users:
+- name: aws
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1alpha1
+      command: heptio-authenticator-aws
+      args:
+        - "token"
+        - "-i"
+        - "<cluster-name>"
+
+jobs:
+- name: publish
+  public: true
+  plan:
+  - get: concourse-repo
+    trigger: true
+  - put: concourse-gcc-image 
+    params:
+      build: concourse-repo/docker
+  - task: run_program
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: amacharla/concourse-gcc
+      run:
+        path: gcc
+        args: [main.c]
+
+- name: deploy
+  public: true
+  plan:
+    - get: concourse-repo
+      passed: [publish]
+      trigger: true
+    - put: eks
+      params:
+        kubectl: apply -f concourse-repo/k8s
+        wait_until_ready_selector: app=ci
