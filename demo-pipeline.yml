@@ -21,13 +21,19 @@ jobs:
   - put: concourse-gcc-image 
     params:
       build: concourse-repo/docker
-  - task: run_program
+  - task: build_and_run_program
     config:
       platform: linux
       image_resource:
         type: docker-image
         source:
           repository: amacharla/concourse-gcc
+      inputs:
+        - name: concourse-repo
       run:
-        path: gcc
-        args: [main.c]
+        path: sh
+        args:
+          - -exc
+          - |
+            gcc concourse-repo/docker/main.c
+            ./a.out
